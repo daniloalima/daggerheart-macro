@@ -105,6 +105,10 @@ async function main() {
                     if (isNaN(explosao)) {
                         explosao = 10;
                     }
+                    else if (explosao < 9) {
+                        ui.notifications.error("O valor de explosão deve ser maior ou igual a 9.");
+                        return;
+                    }
 
                     if (isNaN(target)) {
                         target = 8;
