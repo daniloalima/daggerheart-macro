@@ -1,12 +1,13 @@
 async function roll_d10_bundle(pool, explosao) {
     const rolls = [];
     let rolling = true;
+    console.log(`Rolando ${pool}d10 com explosão em ${explosao}`);
 
     while (rolling) {
         const formula = `${pool}d10[bloodmoon]`;
         const roll = new Roll(formula);
         await roll.evaluate({ async: true });
-        await game.dice3d.showForRoll(roll);
+        await game.dice3d.showForRoll(roll, game.user, true);
 
         const results = roll.dice[0].results.map(r => r.result);
         rolls.push(...results);
@@ -70,6 +71,10 @@ async function main() {
                 <label for="target">Alvo para sucesso</label>
                 <input type="text" name="target" placeholder="Rolagens iguais ou acima disso são sucesso">
             </div>
+            <div class="form-group">
+                <label for="dificuldade">Dificuldade</label>
+                <input type="text" name="dificuldade" placeholder="Dificuldade do teste/Blindagem inimiga">
+            </div>
         </form>
         `,
         buttons: {
@@ -81,12 +86,35 @@ async function main() {
                     const flat_input = html.find('[name="flat"]').val();
                     const explosao_input = html.find('[name="explosao"]').val();
                     const target_input = html.find('[name="target"]').val();
+                    const dificuldade_input = html.find('[name="dificuldade"]').val();
 
-                    const pool = parseInt(pool_input);
-                    const flat = parseInt(flat_input);
-                    const explosao = parseInt(explosao_input);
-                    const target = parseInt(target_input);
-                    const rolls = await roll_d10_bundle(pool, explosao);
+                    let pool = parseInt(pool_input);
+                    let flat = parseInt(flat_input);
+                    let explosao = parseInt(explosao_input);
+                    let target = parseInt(target_input);
+                    let dificuldade = parseInt(dificuldade_input);
+
+                    if (isNaN(pool) || pool < 1) {
+                        pool = 1;
+                    }
+
+                    if (isNaN(flat)) {
+                        flat = 0;
+                    }
+
+                    if (isNaN(explosao)) {
+                        explosao = 10;
+                    }
+
+                    if (isNaN(target)) {
+                        target = 8;
+                    }
+
+                    dificuldade = isNaN(dificuldade) ? 0 : dificuldade;
+
+                    const final_pool = pool - dificuldade;
+
+                    const rolls = await roll_d10_bundle(final_pool, explosao);
                     const sucessos = rolls.filter(r => r >= target).length;
                     const falhaCritica = sucessos === 0 && rolls.includes(1) ? true : false;
                     const total = sucessos + flat;
